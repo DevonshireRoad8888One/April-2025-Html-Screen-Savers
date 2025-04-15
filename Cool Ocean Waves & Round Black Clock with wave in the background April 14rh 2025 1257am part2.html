@@ -1,0 +1,179 @@
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Ocean Wave Clock</title>
+  <style>
+    body, html {
+      margin: 0;
+      padding: 0;
+      overflow: hidden;
+      background-color: black;
+    }
+
+    canvas {
+      display: block;
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+    }
+
+    .clock-container {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      width: 80vmin;
+      height: 80vmin;
+      background: rgba(255, 255, 255, 0.2);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 0 20px rgba(255, 255, 255, 0.3);
+      backdrop-filter: blur(8px);
+    }
+
+    .clock-face {
+      width: 90%;
+      height: 90%;
+      position: relative;
+      border-radius: 50%;
+    }
+
+    .hand {
+      position: absolute;
+      width: 50%;
+      height: 2px;
+      background: white;
+      top: 50%;
+      left: 50%;
+      transform-origin: 0% 50%;
+      transition-timing-function: ease-in-out;
+    }
+
+    .hour {
+      height: 4px;
+      width: 30%;
+    }
+
+    .minute {
+      height: 3px;
+      width: 40%;
+    }
+
+    .second {
+      height: 2px;
+      width: 45%;
+      background: red;
+    }
+
+    .number {
+      position: absolute;
+      color: white;
+      font-family: 'Arial', sans-serif;
+      font-size: 1.5vmin;
+      text-align: center;
+      transform: translate(-50%, -50%);
+    }
+  </style>
+</head>
+<body>
+  <canvas id="oceanCanvas"></canvas>
+
+  <div class="clock-container">
+    <div class="clock-face">
+      <div class="hand hour" id="hour"></div>
+      <div class="hand minute" id="minute"></div>
+      <div class="hand second" id="second"></div>
+
+      <!-- Clock Numbers -->
+      <script>
+        for (let i = 1; i <= 12; i++) {
+          const angle = (i - 3) * (Math.PI * 2) / 12;
+          const radius = 42; // percent relative to container size
+          const x = 50 + radius * Math.cos(angle);
+          const y = 50 + radius * Math.sin(angle);
+
+          const numDiv = document.createElement('div');
+          numDiv.className = 'number';
+          numDiv.style.left = `${x}%`;
+          numDiv.style.top = `${y}%`;
+          numDiv.textContent = i;
+          document.querySelector('.clock-face').appendChild(numDiv);
+        }
+      </script>
+    </div>
+  </div>
+
+  <script>
+    // Animate clock hands
+    function updateClock() {
+      const now = new Date();
+      const hour = now.getHours();
+      const minute = now.getMinutes();
+      const second = now.getSeconds();
+
+      const hourDeg = ((hour % 12) + minute / 60) * 30;
+      const minuteDeg = (minute + second / 60) * 6;
+      const secondDeg = second * 6;
+
+      document.getElementById('hour').style.transform = `rotate(${hourDeg}deg)`;
+      document.getElementById('minute').style.transform = `rotate(${minuteDeg}deg)`;
+      document.getElementById('second').style.transform = `rotate(${secondDeg}deg)`;
+    }
+
+    setInterval(updateClock, 1000);
+    updateClock();
+
+    // Ocean animation
+    const canvas = document.getElementById('oceanCanvas');
+    const ctx = canvas.getContext('2d');
+
+    let waveOffset = 0;
+
+    function resizeCanvas() {
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight;
+    }
+
+    window.addEventListener('resize', resizeCanvas);
+    resizeCanvas();
+
+    function drawOcean() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+      const waveHeight = 20;
+      const waveLength = 100;
+      const speed = 2;
+      const centerY = canvas.height / 2;
+
+      ctx.beginPath();
+      ctx.moveTo(0, centerY);
+
+      for (let x = 0; x <= canvas.width; x++) {
+        const y = waveHeight * Math.sin((x + waveOffset) / waveLength) + centerY;
+        ctx.lineTo(x, y);
+      }
+
+      ctx.lineTo(canvas.width, canvas.height);
+      ctx.lineTo(0, canvas.height);
+      ctx.closePath();
+
+      const gradient = ctx.createLinearGradient(0, centerY - waveHeight, 0, canvas.height);
+      gradient.addColorStop(0, 'rgba(0, 100, 255, 0.5)');
+      gradient.addColorStop(1, 'rgba(0, 50, 150, 0.8)');
+
+      ctx.fillStyle = gradient;
+      ctx.fill();
+
+      waveOffset += speed;
+      requestAnimationFrame(drawOcean);
+    }
+
+    drawOcean();
+  </script>
+</body>
+</html>
